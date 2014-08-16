@@ -6,10 +6,10 @@ var store = dispatcher.store;
 var _ = require('reflux/src/utils');
 
 test('overwrite store', function (t) {
-  // overwritten store listeners should be cleaned so there should be only two test assert
+  // overwritten store listeners should be cleaned so there should be only to test assert
   t.plan(2)
 
-  store('greeting').define({
+  store('greeting', {
     init: function () {
       this.listenTo(action('hello'), this.sayHello);
     },
@@ -20,10 +20,10 @@ test('overwrite store', function (t) {
 
   action('hello')('world');
 
-  // overwriten should be happen at least in next tick
+
   _.nextTick(function () {
 
-    store('greeting').define({
+    store('greeting', {
       init: function () {
         this.listenTo(action('hello'), this.sayHello);
       },

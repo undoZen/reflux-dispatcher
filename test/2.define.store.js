@@ -7,7 +7,7 @@ var store = dispatcher.store;
 test('define store', function (t) {
   t.plan(1)
 
-  store('greeting').define({
+  store('greeting', {
     init: function () {
       this.listenTo(action('hello'), this.sayHello);
     },
