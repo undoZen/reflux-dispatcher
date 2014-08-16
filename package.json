@@ -1,0 +1,30 @@
+{
+  "name": "reflux-dispatcher",
+  "version": "0.0.0",
+  "description": "a hot reload friendly dispatcher for reflux",
+  "main": "index.js",
+  "scripts": {
+    "test": "tape test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/undoZen/reflux-dispatcher.git"
+  },
+  "keywords": [
+    "dispatcher",
+    "react",
+    "flux",
+    "reflux"
+  ],
+  "author": "undoZen <opensource@undozen.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/undoZen/reflux-dispatcher/issues"
+  },
+  "homepage": "https://github.com/undoZen/reflux-dispatcher",
+  "devDependencies": {},
+  "dependencies": {
+    "reflux": "^0.1.6",
+    "tape": "^2.14.0"
+  }
+}
