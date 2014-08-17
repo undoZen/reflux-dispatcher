@@ -9,11 +9,12 @@ function Dispatcher() {
   var actions = {};
   this.actions = this.action = getAction;
   var storeUnsubscribes = {};
+  var storeListeners = {};
   function getAction(actionName) { //get monkey patched action
     if (actions[actionName]) return actions[actionName];
     var action = actions[actionName] = Reflux.createAction();
-    var _listen = action.listen;
     // monkey patch listen method
+    var _listen = action.listen;
     action.listen = function(callback, bindContext) {
       var unsubscribe = _listen.apply(action, arguments);
       var storeName = bindContext && bindContext.storeName;
@@ -43,8 +44,28 @@ function Dispatcher() {
       console.log(unsubscribe.toString());
       unsubscribe();
     }
+    var listenerInfo;
+    while( (listenerInfo = (storeUnsubscribes[storeName] || []).shift()) ){
+      console.log(unsubscribe.toString());
+      listenerInfo.unsubscribe();
+    }
     store = stores[storeName] = Reflux.createStore(_.extend(store, definition));
     console.log(store);
+    // monkey patch listen method
+    var _listen = store.listen;
+    store.listen = function(callback, bindContext) {
+      var unsubscribe = _listen.apply(store, arguments);
+      var listenerStoreName = bindContext && bindContext.listenerStoreName;
+      if (listenerStoreName) {
+        (storeUnsubscribes[listenerStoreName] || (storeUnsubscribes[listenerStoreName] = [])).push(unsubscribe);
+        (storeListeners[storeName] || (storeListeners[storeName] = [])).push({
+          storeName: listenerStoreName,
+          unsubscribe: unsubscribe,
+          args: arguments
+        });
+      }
+      return unsubscribe;
+    };
     return store;
   }
 }
