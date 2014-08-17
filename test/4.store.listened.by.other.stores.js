@@ -5,14 +5,15 @@ var action = dispatcher.action;
 var store = dispatcher.store;
 
 test('define store', function (t) {
-  t.plan(2)
+  t.plan(3)
 
   store('age', {
     age: 25,
     init: function () {
-      this.listenTo(action('pass years'), this.incr);
+      this.listenTo(action('pass years'), this.inc);
+      this.trigger(this.getData());
     },
-    incr: function (years) {
+    inc: function (years) {
       this.age += years;
       this.trigger(this.getData());
     },
@@ -25,10 +26,9 @@ test('define store', function (t) {
     name: 'undoZen',
     age: store('age').getData(),
     init: function () {
-      this.listenTo(store('age'), this.howTimeFlies);
+      this.listenTo(store('age'), this.setAge);
     },
-    howTimeFlies: function(age) {
-      console.log('How time flies! I\'m', age, 'now!');
+    setAge: function(age) {
       this.age = age;
       this.trigger(this.getData());
     },
@@ -43,7 +43,37 @@ test('define store', function (t) {
   t.equal(store('age').getData(), 25);
 
   action('pass years')(2);
+
   store('person').listen(function (data) {
+    // should be called twice
+    // newly defined store('age') should inherit listeners
+    // (which is only store('persion') in this case)
+    // from early defined version
     t.deepEqual(data, {name: 'undoZen', age: 27});
   });
+
+  setTimeout(function () {
+    store('age', { // redefine store('age') here
+      age: 29,
+      init: function () {
+        this.listenTo(action('pass years'), this.inc);
+        this.listenTo(action('return back'), this.dec);
+        this.trigger(this.age);
+      },
+      inc: function (years) {
+        this.age += years;
+        this.trigger(this.getData());
+      },
+      dec: function (years) {
+        this.age -= years;
+        this.trigger(this.getData());
+      },
+      getData: function () {
+        return this.age;
+      }
+    });
+
+    action('return back')(2);
+  }, 100);
+
 });

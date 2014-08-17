@@ -6,11 +6,21 @@ module.exports = Dispatcher;
 
 function Dispatcher() {
   if (!(this instanceof Dispatcher)) return new Dispatcher;
+
   var actions = {};
   this.actions = this.action = getAction;
+
+  // unsubscribe handlers for hot reload
+  // the actions or stores a store listened to will be all cleaned
+  // before it's been replaced with new definition
   var storeUnsubscribes = {};
+
+  // record which stores have been listened to this store
+  // then after redefined, new version of this store should
+  // keep sending events to these stores
   var storeListeners = {};
-  function getAction(actionName) { //get monkey patched action
+
+  function getAction(actionName) {
     if (actions[actionName]) return actions[actionName];
     var action = actions[actionName] = Reflux.createAction();
     // monkey patch listen method
@@ -33,39 +43,46 @@ function Dispatcher() {
     if (store && !definition) return store;
 
     var store = stores[storeName] = {
-      storeName: storeName,
-      listen: function () { },
-      listenTo: function () { },
-      trigger: function () { }
+      storeName: storeName
     }
     if (!definition) return store;
+
     var unsubscribe;
     while( (unsubscribe = (storeUnsubscribes[storeName] || []).shift()) ){
-      console.log(unsubscribe.toString());
       unsubscribe();
     }
-    var listenerInfo;
-    while( (listenerInfo = (storeUnsubscribes[storeName] || []).shift()) ){
-      console.log(unsubscribe.toString());
-      listenerInfo.unsubscribe();
-    }
+
     store = stores[storeName] = Reflux.createStore(_.extend(store, definition));
-    console.log(store);
+
     // monkey patch listen method
     var _listen = store.listen;
     store.listen = function(callback, bindContext) {
       var unsubscribe = _listen.apply(store, arguments);
-      var listenerStoreName = bindContext && bindContext.listenerStoreName;
+      var listenerStoreName = bindContext && bindContext.storeName;
       if (listenerStoreName) {
         (storeUnsubscribes[listenerStoreName] || (storeUnsubscribes[listenerStoreName] = [])).push(unsubscribe);
         (storeListeners[storeName] || (storeListeners[storeName] = [])).push({
-          storeName: listenerStoreName,
           unsubscribe: unsubscribe,
-          args: arguments
+          callback: callback,
+          storeListenedTo: store,
+          listenerStore: bindContext
         });
       }
       return unsubscribe;
     };
+
+    var listenerInfo;
+    var _listeners = storeListeners[storeName] || [];
+    storeListeners[storeName] = [];
+    while( (listenerInfo = _listeners.shift()) ){
+      listenerInfo.unsubscribe();
+      listenerInfo.listenerStore.registered.splice(
+        listenerInfo.listenerStore.registered.indexOf(listenerInfo.storeListenedTo),
+        1
+      );
+
+      listenerInfo.listenerStore.listenTo(store, listenerInfo.callback);
+    }
     return store;
   }
 }
