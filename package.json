@@ -22,9 +22,10 @@
     "url": "https://github.com/undoZen/reflux-dispatcher/issues"
   },
   "homepage": "https://github.com/undoZen/reflux-dispatcher",
-  "devDependencies": {},
-  "dependencies": {
-    "reflux": "^0.1.6",
+  "devDependencies": {
     "tape": "^2.14.0"
+  },
+  "dependencies": {
+    "reflux": "^0.1.6"
   }
 }
