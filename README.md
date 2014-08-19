@@ -15,5 +15,19 @@ a hot reload friendly dispatcher for reflux
     });
     action('signin')({username: 'undozen', password: '123'});
 
+    //store definition
+    store('session', {
+      init: function () {
+        this.listenTo(action('signin'), this.signin);
+      },
+      signin: function (user) {
+        //do ajax signin etc...
+      }
+    });
+
+    //laterly, you can redefined store('session')
+    //so here is what I mean by "hot reload friendly"
+    store('session', {/* new definition */});
+
 ##License
 [MIT](http://undozen.mit-license.org/2014)
