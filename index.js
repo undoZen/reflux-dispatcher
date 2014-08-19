@@ -2,7 +2,8 @@
 var Reflux = require('reflux');
 var _ = require('reflux/src/utils');
 
-module.exports = Dispatcher;
+exports = module.exports = Dispatcher;
+exports.Reflux = Reflux;
 
 function Dispatcher() {
   if (!(this instanceof Dispatcher)) return new Dispatcher;

@@ -26,6 +26,6 @@
     "tape": "^2.14.0"
   },
   "dependencies": {
-    "reflux": "^0.1.6"
+    "reflux": "https://github.com/undoZen/refluxjs/archive/master.tar.gz"
   }
 }
