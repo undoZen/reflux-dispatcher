@@ -5,8 +5,10 @@ var _ = require('reflux/src/utils');
 exports = module.exports = Dispatcher;
 exports.Reflux = Reflux;
 
-function Dispatcher() {
-  if (!(this instanceof Dispatcher)) return new Dispatcher;
+function Dispatcher(defaultDataForStores) {
+  if (!(this instanceof Dispatcher)) return new Dispatcher(defaultDataForStores);
+
+  defaultDataForStores = defaultDataForStores || {};
 
   var actions = {};
   this.actions = this.action = getAction;
@@ -42,9 +44,13 @@ function Dispatcher() {
   function getOrSetStore(storeName, definition) {
     var store = stores[storeName];
     if (store && !definition) return store;
+    definition = definition || {};
 
     var store = stores[storeName] = {
-      storeName: storeName
+      storeName: storeName,
+      getDefaultData: function () {
+        return _.isFunction(definition.getDefaultData) ? definition.getDefaultData.call(this) : defaultDataForStores[storeName];
+      }
     }
     if (!definition) return store;
 
