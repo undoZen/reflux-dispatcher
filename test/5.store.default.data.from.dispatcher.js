@@ -1,29 +1,76 @@
 'use strict';
 var test = require('tape');
-var dispatcher = require('../')({
-  age: 25
-});
-var action = dispatcher.action;
-var store = dispatcher.store;
+var Dispatcher = require('../');
 
-test('define store', function (t) {
+test('default data for store', function (t) {
+  var dispatcher = Dispatcher();
+  var action = dispatcher.action;
+  var store = dispatcher.store;
   t.plan(1)
 
   store('age', {
-    age: 21,
     init: function () {
       this.listenTo(action('pass years'), this.inc);
-      this.trigger(this.getData());
+      this.data = this.getDefaultData();
+      this.trigger(this.getDefaultData());
     },
     inc: function (years) {
-      this.age += years;
-      this.trigger(this.getData());
+      this.data += years;
+      this.trigger(this.data);
     },
-    getData: function () {
-      return this.age;
+    getDefaultData: function () {
+      return 21;
+    }
+  });
+
+  t.equal(store('age').getDefaultData(), 21);
+
+});
+
+test('save default data for store', function (t) {
+  var dispatcher = Dispatcher({
+    data: {
+      age: 25
+    }
+  });
+  var action = dispatcher.action;
+  var store = dispatcher.store;
+  t.plan(2)
+
+  store('age', {
+    init: function () {
+      this.listenTo(action('pass years'), this.inc);
+      this.data = this.getDefaultData();
+      this.trigger(this.getDefaultData());
+    },
+    inc: function (years) {
+      this.data += years;
+      this.trigger(this.data);
+    },
+    getDefaultData: function () {
+      return 21;
     }
   });
 
   t.equal(store('age').getDefaultData(), 25);
+
+  var a = store('person', {
+    data: {
+      name: 'undozen'
+    },
+    init: function () {
+      this.listenTo(store('age'), this.setAge, this.setAge);
+    },
+    setAge: function (age) {
+      this.data.age = age;
+      this.trigger(this.data);
+    }
+  });
+
+  store('person').listen(function (data) {
+    t.deepEqual(data, {name: 'undozen', age: 27});
+  });
+
+  action('pass years')(2);
 
 });

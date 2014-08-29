@@ -5,10 +5,11 @@ var _ = require('reflux/src/utils');
 exports = module.exports = Dispatcher;
 exports.Reflux = Reflux;
 
-function Dispatcher(defaultDataForStores) {
-  if (!(this instanceof Dispatcher)) return new Dispatcher(defaultDataForStores);
+function Dispatcher(options) {
+  if (!(this instanceof Dispatcher)) return new Dispatcher(options);
 
-  defaultDataForStores = defaultDataForStores || {};
+  options = options || {};
+  var defaultDataForStores = options.data || {};
 
   var actions = {};
   this.actions = this.action = getAction;
@@ -46,13 +47,32 @@ function Dispatcher(defaultDataForStores) {
     if (store && !definition) return store;
     definition = definition || {};
 
-    var store = stores[storeName] = {
-      storeName: storeName,
-      getDefaultData: function () {
-        return _.isFunction(definition.getDefaultData) ? definition.getDefaultData.call(this) : defaultDataForStores[storeName];
+    var defaultDataFunc;
+    if ('getDefaultData' in definition) {
+      if ('function' == typeof definition.getDefaultData) {
+        defaultDataFunc = definition.getDefaultData;
+        delete definition.getDefaultData;
       }
     }
+
+    var store = stores[storeName] = {
+      storeName: storeName
+    }
     if (!definition) return store;
+    var _init = definition.init;
+    _.extend(definition, {
+      init: function () {
+        if (defaultDataFunc && !defaultDataForStores[storeName]) {
+          defaultDataForStores[storeName] = defaultDataFunc.call(this);
+        }
+        if ('function' == typeof _init) {
+          _init.call(this);
+        }
+      },
+      getDefaultData: function () {
+        return defaultDataForStores[storeName];
+      }
+    });
 
     var unsubscribe;
     while( (unsubscribe = (storeUnsubscribes[storeName] || []).shift()) ){
