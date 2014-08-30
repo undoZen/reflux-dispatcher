@@ -26,6 +26,7 @@
     "tape": "^2.14.0"
   },
   "dependencies": {
+    "is-type": "0.0.1",
     "reflux": "^0.1.7"
   }
 }

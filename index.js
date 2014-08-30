@@ -1,5 +1,6 @@
 'use strict';
 var Reflux = require('reflux');
+var is = require('is-type');
 var _ = require('reflux/src/utils');
 
 exports = module.exports = Dispatcher;
@@ -9,7 +10,21 @@ function Dispatcher(options) {
   if (!(this instanceof Dispatcher)) return new Dispatcher(options);
 
   options = options || {};
-  var defaultDataForStores = options.data || {};
+  var defaultDataForStores = {};
+  if (options.data) {
+    for (var k in options.data) {
+      if (options.data.hasOwnProperty(k)) {
+        setDefaultData(k, options.data[k]);
+      }
+    }
+  }
+  function setDefaultData(storeName, data) {
+    if (is.array(data)) {
+      defaultDataForStores[storeName] = data;
+    } else {
+      defaultDataForStores[storeName] = [data];
+    }
+  }
 
   var actions = {};
   this.actions = this.action = getAction;
@@ -49,7 +64,7 @@ function Dispatcher(options) {
 
     var defaultDataFunc;
     if ('getDefaultData' in definition) {
-      if ('function' == typeof definition.getDefaultData) {
+      if (is.function(definition.getDefaultData)) {
         defaultDataFunc = definition.getDefaultData;
         delete definition.getDefaultData;
       }
@@ -63,9 +78,9 @@ function Dispatcher(options) {
     _.extend(definition, {
       init: function () {
         if (defaultDataFunc && !defaultDataForStores[storeName]) {
-          defaultDataForStores[storeName] = defaultDataFunc.call(this);
+          setDefaultData(storeName, defaultDataFunc.call(this));
         }
-        if ('function' == typeof _init) {
+        if (is.function(_init)) {
           _init.call(this);
         }
       },
@@ -97,6 +112,13 @@ function Dispatcher(options) {
       }
       return unsubscribe;
     };
+
+    // monkey patch trigger method to save data
+    var _trigger = store.trigger;
+    store.trigger = function () {
+      defaultDataForStores[storeName] = Array.prototype.slice.call(arguments);
+      _trigger.apply(this, arguments);
+    }
 
     var listenerInfo;
     var _listeners = storeListeners[storeName] || [];
