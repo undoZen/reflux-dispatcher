@@ -41,7 +41,7 @@ test('save default data for store', function (t) {
     init: function () {
       this.listenTo(action('pass years'), this.inc);
       this.data = this.getDefaultData()[0];
-      this.trigger.call(this, this.getDefaultData());
+      this.trigger(this.data);
     },
     inc: function (years) {
       this.data += years;

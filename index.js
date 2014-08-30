@@ -11,19 +11,30 @@ function Dispatcher(options) {
 
   options = options || {};
   var defaultDataForStores = {};
-  if (options.data) {
-    for (var k in options.data) {
-      if (options.data.hasOwnProperty(k)) {
-        setDefaultData(k, options.data[k]);
-      }
-    }
-  }
+
   function setDefaultData(storeName, data) {
     if (is.array(data)) {
       defaultDataForStores[storeName] = data;
     } else {
       defaultDataForStores[storeName] = [data];
     }
+  }
+
+  this.getDefaultDataForStores = function () {
+    return defaultDataForStores;
+  }
+
+  this.setDefaultDataForStores = function (data) {
+    for (var k in data) {
+      if (data.hasOwnProperty(k)) {
+        setDefaultData(k, data[k]);
+      }
+    }
+    return defaultDataForStores;
+  }
+
+  if (options.data) {
+    this.setDefaultDataForStores(options.data);
   }
 
   var actions = {};
