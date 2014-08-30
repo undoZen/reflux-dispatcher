@@ -4,7 +4,7 @@ var dispatcher = require('../')();
 var action = dispatcher.action;
 var store = dispatcher.store;
 
-test('define store', function (t) {
+test('stores listentTo other stores', function (t) {
   t.plan(3)
 
   store('age', {
@@ -26,7 +26,7 @@ test('define store', function (t) {
     name: 'undoZen',
     age: store('age').getData(),
     init: function () {
-      this.listenTo(store('age'), this.setAge);
+      this.listenTo(store('age'), this.setAge, false);
     },
     setAge: function(age) {
       this.age = age;

@@ -5,6 +5,7 @@ var _ = require('reflux/src/utils');
 
 exports = module.exports = Dispatcher;
 exports.Reflux = Reflux;
+wrapListenTo(Reflux);
 
 function Dispatcher(options) {
   if (!(this instanceof Dispatcher)) return new Dispatcher(options);
@@ -88,6 +89,8 @@ function Dispatcher(options) {
     var _init = definition.init;
     _.extend(definition, {
       init: function () {
+        wrapListenTo(this);
+
         if (defaultDataFunc && !defaultDataForStores[storeName]) {
           setDefaultData(storeName, defaultDataFunc.call(this));
         }
@@ -117,6 +120,7 @@ function Dispatcher(options) {
         (storeListeners[storeName] || (storeListeners[storeName] = [])).push({
           unsubscribe: unsubscribe,
           callback: callback,
+          defaultCallback: callback._defaultCallback,
           storeListenedTo: store,
           listenerStore: bindContext
         });
@@ -141,8 +145,27 @@ function Dispatcher(options) {
         1
       );
 
-      listenerInfo.listenerStore.listenTo(store, listenerInfo.callback);
+      listenerInfo.listenerStore.listenTo(store, listenerInfo.callback, listenerInfo.defaultCallback);
     }
     return store;
+  }
+}
+
+function wrapListenTo(context) {
+  if (!is.function(context.listenTo)) return;
+  var _listenTo = context.listenTo;
+  return context.listenTo = function (listenable, callback, defaultCallback) {
+    callback._defaultCallback = defaultCallback;
+    if (defaultCallback === false) {
+      return _listenTo.call(context, listenable, callback);
+    } else {
+      defaultCallback = is.function(defaultCallback)
+                      ? defaultCallback
+                      : callback;
+      return _listenTo.call(context, listenable, callback, function (data) {
+        // since dispatcher save defaultDataForStores as arguments...
+        return defaultCallback.apply(this, data);
+      });
+    }
   }
 }
