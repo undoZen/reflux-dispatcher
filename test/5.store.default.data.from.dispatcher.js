@@ -23,7 +23,7 @@ test('default data for store', function (t) {
     }
   });
 
-  t.deepEqual(store('age').getDefaultData(), [21]);
+  t.equal(store('age').getDefaultData(), 21);
 
 });
 
@@ -40,7 +40,7 @@ test('save default data for store', function (t) {
   store('age', {
     init: function () {
       this.listenTo(action('pass years'), this.inc);
-      this.data = this.getDefaultData()[0];
+      this.data = this.getDefaultData();
       this.trigger(this.data);
     },
     inc: function (years) {
@@ -52,7 +52,7 @@ test('save default data for store', function (t) {
     }
   });
 
-  t.deepEqual(store('age').getDefaultData(), [25]);
+  t.equal(store('age').getDefaultData(), 25);
 
   var a = store('person', {
     data: {
@@ -69,7 +69,7 @@ test('save default data for store', function (t) {
 
   store('person').listen(function (data) {
     t.deepEqual(data, {name: 'undozen', age: 27});
-    t.deepEqual(store('person').getDefaultData()[0], {name: 'undozen', age: 27});
+    t.deepEqual(store('person').getDefaultData(), {name: 'undozen', age: 27});
   });
 
   action('pass years')(2);

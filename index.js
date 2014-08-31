@@ -14,11 +14,7 @@ function Dispatcher(options) {
   var defaultDataForStores = {};
 
   function setDefaultData(storeName, data) {
-    if (is.array(data)) {
-      defaultDataForStores[storeName] = data;
-    } else {
-      defaultDataForStores[storeName] = [data];
-    }
+    defaultDataForStores[storeName] = data;
   }
 
   this.getDefaultDataForStores = function () {
@@ -130,8 +126,8 @@ function Dispatcher(options) {
 
     // monkey patch trigger method to save data
     var _trigger = store.trigger;
-    store.trigger = function () {
-      defaultDataForStores[storeName] = Array.prototype.slice.call(arguments);
+    store.trigger = function (data) { //save only first argument
+      defaultDataForStores[storeName] = data;
       _trigger.apply(this, arguments);
     }
 
@@ -162,10 +158,7 @@ function wrapListenTo(context) {
       defaultCallback = is.function(defaultCallback)
                       ? defaultCallback
                       : callback;
-      return _listenTo.call(context, listenable, callback, function (data) {
-        // since dispatcher save defaultDataForStores as arguments...
-        return defaultCallback.apply(this, data);
-      });
+      return _listenTo.call(context, listenable, callback, defaultCallback);
     }
   }
 }
