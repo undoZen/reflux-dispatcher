@@ -100,25 +100,55 @@ function Dispatcher(options) {
     });
 
     var unsubscribe;
+    var listenerInfo;
+    var _listeners = storeListeners[storeName] || [];
+
     while( (unsubscribe = (storeUnsubscribes[storeName] || []).shift()) ){
       unsubscribe();
     }
 
     store = stores[storeName] = Reflux.createStore(_.extend(store, definition));
 
+    storeListeners[storeName] = [];
+    while( (listenerInfo = _listeners.shift()) ){
+      listenerInfo.unsubscribe();
+      if (listenerInfo.listener.registered) {
+        listenerInfo.listener.registered.splice(
+          listenerInfo.listener.registered.indexOf(listenerInfo.storeListenedTo),
+          1
+        );
+      }
+      if (listenerInfo.listener.subscriptions) {
+        listenerInfo.listener.subscriptions.splice(
+          listenerInfo.listener.subscriptions.indexOf(listenerInfo.unsubscribe),
+          1
+        );
+      }
+      _listeners
+
+      listenerInfo.listener.listenTo(store, listenerInfo.callback, listenerInfo.defaultCallback);
+    }
+
     // monkey patch listen method
     var _listen = store.listen;
     store.listen = function(callback, bindContext) {
       var unsubscribe = _listen.apply(store, arguments);
       var listenerStoreName = bindContext && bindContext.storeName;
+      var listenerInfo = {
+        unsubscribe: unsubscribe,
+        callback: callback,
+        defaultCallback: callback._defaultCallback,
+        storeListenedTo: store,
+        listener: bindContext
+      };
+      (storeListeners[storeName] || (storeListeners[storeName] = [])).push(listenerInfo);
       if (listenerStoreName) {
-        (storeUnsubscribes[listenerStoreName] || (storeUnsubscribes[listenerStoreName] = [])).push(unsubscribe);
-        (storeListeners[storeName] || (storeListeners[storeName] = [])).push({
-          unsubscribe: unsubscribe,
-          callback: callback,
-          defaultCallback: callback._defaultCallback,
-          storeListenedTo: store,
-          listenerStore: bindContext
+        (storeUnsubscribes[listenerStoreName] || (storeUnsubscribes[listenerStoreName] = [])).push(function () {
+          storeListeners[storeName].splice(
+            storeListeners[storeName].indexOf(listenerInfo),
+            1
+          );
+          unsubscribe();
         });
       }
       return unsubscribe;
@@ -131,18 +161,6 @@ function Dispatcher(options) {
       _trigger.apply(this, arguments);
     }
 
-    var listenerInfo;
-    var _listeners = storeListeners[storeName] || [];
-    storeListeners[storeName] = [];
-    while( (listenerInfo = _listeners.shift()) ){
-      listenerInfo.unsubscribe();
-      listenerInfo.listenerStore.registered.splice(
-        listenerInfo.listenerStore.registered.indexOf(listenerInfo.storeListenedTo),
-        1
-      );
-
-      listenerInfo.listenerStore.listenTo(store, listenerInfo.callback, listenerInfo.defaultCallback);
-    }
     return store;
   }
 }
