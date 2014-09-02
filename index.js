@@ -72,7 +72,7 @@ function Dispatcher(options) {
 
     var defaultDataFunc;
     if ('getDefaultData' in definition) {
-      if (is.function(definition.getDefaultData)) {
+      if (is['function'](definition.getDefaultData)) {
         defaultDataFunc = definition.getDefaultData;
         delete definition.getDefaultData;
       }
@@ -90,7 +90,7 @@ function Dispatcher(options) {
         if (defaultDataFunc && !defaultDataForStores[storeName]) {
           setDefaultData(storeName, defaultDataFunc.call(this));
         }
-        if (is.function(_init)) {
+        if (is['function'](_init)) {
           _init.call(this);
         }
       },
@@ -166,14 +166,14 @@ function Dispatcher(options) {
 }
 
 function wrapListenTo(context) {
-  if (!is.function(context.listenTo)) return;
+  if (!is['function'](context.listenTo)) return;
   var _listenTo = context.listenTo;
   return context.listenTo = function (listenable, callback, defaultCallback) {
     callback._defaultCallback = defaultCallback;
     if (defaultCallback === false) {
       return _listenTo.call(context, listenable, callback);
     } else {
-      defaultCallback = is.function(defaultCallback)
+      defaultCallback = is['function'](defaultCallback)
                       ? defaultCallback
                       : callback;
       return _listenTo.call(context, listenable, callback, defaultCallback);
