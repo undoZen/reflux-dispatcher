@@ -1,6 +1,15 @@
 'use strict';
 var test = require('tape');
+var assert = require('assert');
 var Dispatcher = require('../');
+var _once = function (fn) {
+  var called;
+  return function () {
+    if (called) return;
+    called = true;
+    return fn.apply(this, arguments);
+  }
+}
 
 test('default data for store', function (t) {
   var dispatcher = Dispatcher();
@@ -54,7 +63,7 @@ test('save default data for store', function (t) {
 
   t.equal(store('age').getDefaultData(), 25);
 
-  var a = store('person', {
+  store('person', {
     data: {
       name: 'undozen'
     },
@@ -73,5 +82,46 @@ test('save default data for store', function (t) {
   });
 
   action('pass years')(2);
+
+});
+
+test('ignore errors triggered by store', function (t) {
+  var dispatcher = Dispatcher({
+    data: {
+      age: 25
+    }
+  });
+  var action = dispatcher.action;
+  var store = dispatcher.store;
+  t.plan(3)
+
+  store('age', {
+    init: function () {
+      this.listenTo(action('pass years'), this.inc);
+      this.data = this.getDefaultData();
+      this.trigger(this.data);
+    },
+    inc: function (years) {
+      try {
+        assert.equal(typeof years, 'number')
+      } catch (e) {
+        this.trigger(e);
+        return;
+      }
+      this.data += years;
+      this.trigger(this.data);
+    },
+    getDefaultData: function () {
+      return 21;
+    }
+  });
+
+  t.equal(store('age').getDefaultData(), 25);
+
+  store('age').listen(function (data) {
+    t.equal('AssertionError', data.name);
+    t.equal(store('age').getDefaultData(), 25);
+  });
+  action('pass years')('two years');
 
 });

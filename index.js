@@ -157,7 +157,9 @@ function Dispatcher(options) {
     // monkey patch trigger method to save data
     var _trigger = store.trigger;
     store.trigger = function (data) { //save only first argument
-      defaultDataForStores[storeName] = data;
+      if (!(data instanceof Error)) {
+        defaultDataForStores[storeName] = data;
+      }
       _trigger.apply(this, arguments);
     }
 
@@ -180,3 +182,25 @@ function wrapListenTo(context) {
     }
   }
 }
+
+/*
+ * pre-defined errors for async state management, e.g.
+ *
+ * store('user').listenTo(store('login'), function (data) {
+ *   if (data is Dispatcher.loading) {
+ *     // show loading spinner
+ *   }
+ * });
+ *
+ */
+function ReadyError() {
+  this.status = 'ready';
+}
+ReadyError.prototype = new Error;
+Dispatcher.ready = Dispatcher.prototype.ready = new ReadyError;
+
+function LoadingError() {
+  this.status = 'loading';
+}
+LoadingError.prototype = new Error;
+Dispatcher.loading = Dispatcher.prototype.loading = new LoadingError;
