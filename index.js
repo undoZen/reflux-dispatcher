@@ -124,9 +124,10 @@ function Dispatcher(options) {
           1
         );
       }
-      _listeners
 
-      listenerInfo.listener.listenTo(store, listenerInfo.callback, listenerInfo.defaultCallback);
+      if (is['function'](listenerInfo.listener.listenTo)) {
+        listenerInfo.listener.listenTo(store, listenerInfo.callback, listenerInfo.defaultCallback);
+      }
     }
 
     // monkey patch listen method
@@ -204,3 +205,5 @@ function LoadingError() {
 }
 LoadingError.prototype = new Error;
 Dispatcher.loading = Dispatcher.prototype.loading = new LoadingError;
+
+Dispatcher.prototype.allStoresReady = require('./allStoresReady');
