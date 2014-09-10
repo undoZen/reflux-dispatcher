@@ -5,6 +5,8 @@ var _ = require('reflux/src/utils');
 
 exports = module.exports = Dispatcher;
 exports.Reflux = Reflux;
+exports.ListenerMixin = Reflux.ListenerMixin;
+exports.DispatcherMixin = require('./dispatcher-mixin');
 wrapListenTo(Reflux);
 
 function Dispatcher(options) {
@@ -133,24 +135,25 @@ function Dispatcher(options) {
     // monkey patch listen method
     var _listen = store.listen;
     store.listen = function(callback, bindContext) {
-      var unsubscribe = _listen.apply(store, arguments);
+      var _unsubscribe = _listen.apply(store, arguments);
       var listenerStoreName = bindContext && bindContext.storeName;
       var listenerInfo = {
-        unsubscribe: unsubscribe,
         callback: callback,
         defaultCallback: callback._defaultCallback,
         storeListenedTo: store,
         listener: bindContext
       };
       (storeListeners[storeName] || (storeListeners[storeName] = [])).push(listenerInfo);
+      var unsubscribe = function () {
+        storeListeners[storeName].splice(
+          storeListeners[storeName].indexOf(listenerInfo),
+          1
+        );
+        _unsubscribe();
+      };
+      listenerInfo.unsubscribe = unsubscribe;
       if (listenerStoreName) {
-        (storeUnsubscribes[listenerStoreName] || (storeUnsubscribes[listenerStoreName] = [])).push(function () {
-          storeListeners[storeName].splice(
-            storeListeners[storeName].indexOf(listenerInfo),
-            1
-          );
-          unsubscribe();
-        });
+        (storeUnsubscribes[listenerStoreName] || (storeUnsubscribes[listenerStoreName] = [])).push(unsubscribe);
       }
       return unsubscribe;
     };
