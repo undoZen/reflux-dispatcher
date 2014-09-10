@@ -11,6 +11,7 @@ wrapListenTo(Reflux);
 
 function Dispatcher(options) {
   if (!(this instanceof Dispatcher)) return new Dispatcher(options);
+  var dispatcher = this;
 
   options = options || {};
   var defaultDataForStores = {};
@@ -69,7 +70,7 @@ function Dispatcher(options) {
   this.stores = this.store = getOrSetStore;
   function getOrSetStore(storeName, definition) {
     var store = stores[storeName];
-    if (store && !definition) return store;
+    if (store && (!definition || dispatcher.enableHotReload === false)) return store;
     definition = definition || {};
 
     var defaultDataFunc;
