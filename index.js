@@ -188,27 +188,10 @@ function wrapListenTo(context) {
   }
 }
 
-/*
- * pre-defined errors for async state management, e.g.
- *
- * store('user').listenTo(store('login'), function (data) {
- *   if (data is Dispatcher.loading) {
- *     // show loading spinner
- *   }
- * });
- *
- */
-function ReadyError() {
-  this.status = 'ready';
-}
-ReadyError.prototype = new Error;
-Dispatcher.ready = Dispatcher.prototype.ready = new ReadyError;
-
-function LoadingError() {
-  this.status = 'loading';
-}
-LoadingError.prototype = new Error;
-Dispatcher.loading = Dispatcher.prototype.loading = new LoadingError;
+var errors = require('./errors');
+_.extend(Dispatcher, errors);
+_.extend(Dispatcher.prototype, errors);
 
 Dispatcher.prototype.allStoresReady = require('./allStoresReady');
 Dispatcher.voidInvalidData = Dispatcher.prototype.voidInvalidData = require('./voidInvalidData');
+Dispatcher.voidBuiltinData = Dispatcher.prototype.voidBuiltinData = require('./voidBuiltinData');
