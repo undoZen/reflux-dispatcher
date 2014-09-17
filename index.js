@@ -211,3 +211,4 @@ LoadingError.prototype = new Error;
 Dispatcher.loading = Dispatcher.prototype.loading = new LoadingError;
 
 Dispatcher.prototype.allStoresReady = require('./allStoresReady');
+Dispatcher.voidInvalidData = Dispatcher.prototype.voidInvalidData = require('./voidInvalidData');
