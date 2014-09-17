@@ -1,6 +1,6 @@
 {
   "name": "reflux-dispatcher",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "description": "a hot reload friendly dispatcher for reflux",
   "main": "index.js",
   "scripts": {
