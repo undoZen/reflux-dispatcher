@@ -27,6 +27,6 @@
   },
   "dependencies": {
     "is-type": "0.0.1",
-    "reflux": "^0.1.7"
+    "reflux": "^0.1.12"
   }
 }
