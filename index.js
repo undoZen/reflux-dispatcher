@@ -6,7 +6,7 @@ var _ = require('reflux/src/utils');
 exports = module.exports = Dispatcher;
 exports.Reflux = Reflux;
 exports.ListenerMixin = Reflux.ListenerMixin;
-exports.DispatcherMixin = require('./dispatcher-mixin');
+exports.DispatcherMixin = require('./DispatcherMixin');
 wrapListenTo(Reflux);
 
 function Dispatcher(options) {
