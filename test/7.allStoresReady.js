@@ -5,7 +5,6 @@ var Dispatcher = require('../');
 test('allStoresReady() method', function (t) {
   var dispatcher = new Dispatcher;
   var loading = Dispatcher.loading;
-  console.log(loading);
   var store = dispatcher.store;
   t.plan(6);
 
@@ -34,7 +33,7 @@ test('allStoresReady() method', function (t) {
   t.equal(store('a').getDefaultData(), undefined);
   t.equal(store('b').getDefaultData(), undefined);
 
-  var as = dispatcher.allStoresReady(['a', 'b'], function () {
+  var as = dispatcher.allStoresReady(function () {
     t.equal(store('a').getDefaultData(), 'hello');
     t.equal(store('b').getDefaultData(), 'world');
   });

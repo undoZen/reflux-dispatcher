@@ -1,5 +1,6 @@
 'use strict';
 var Reflux = require('reflux');
+var isLoading = require('./isLoading');
 var is = require('is-type');
 var _ = require('reflux/src/utils');
 
@@ -36,6 +37,7 @@ function Dispatcher(options) {
   if (options.data) {
     this.setDefaultDataForStores(options.data);
   }
+  var saveErrorData = options.saveErrorData;
 
   var actions = {};
   this.actions = this.action = getAction;
@@ -67,6 +69,9 @@ function Dispatcher(options) {
   }
 
   var stores = {};
+  var readyStores = {};
+  var allStoresReadyTriggered = false;
+
   this.stores = this.store = getOrSetStore;
   function getOrSetStore(storeName, definition) {
     var store = stores[storeName];
@@ -84,6 +89,7 @@ function Dispatcher(options) {
     var store = stores[storeName] = {
       storeName: storeName
     }
+    readyStores[storeName] = false;
     if (!definition) return store;
     var _init = definition.init;
     _.extend(definition, {
@@ -162,13 +168,32 @@ function Dispatcher(options) {
     // monkey patch trigger method to save data
     var _trigger = store.trigger;
     store.trigger = function (data) { //save only first argument
-      if (!(data instanceof Error)) {
+      if (saveErrorData || !(data instanceof Error)) {
         defaultDataForStores[storeName] = data;
       }
+      if (!isLoading(data)) {
+        readyStores[storeName] = true;
+      }
       _trigger.apply(this, arguments);
+      if (!allStoresReadyTriggered) {
+        for (var k in readyStores) {
+          if (!readyStores.hasOwnProperty(k)) continue;
+          if (!(readyStores[k])) return;
+        }
+        allStoresReadyTriggered = true;
+        var callback;
+        while (callback = allStoresReadyCallbacks.shift()) {
+          callback();
+        }
+      }
     }
 
     return store;
+  }
+  var allStoresReadyCallbacks = [];
+  this.allStoresReady = function (callback) {
+    if (allStoresReadyTriggered) callback();
+    else allStoresReadyCallbacks.push(callback);
   }
 }
 
@@ -190,7 +215,5 @@ function wrapListenTo(context) {
 
 Dispatcher.prototype.ready = Dispatcher.ready = null;
 Dispatcher.prototype.loading = Dispatcher.loading = {isLoading: true};
-
-Dispatcher.prototype.allStoresReady = require('./allStoresReady');
 
 //Dispatcher.prototype.ignoreLoading = Dispatcher.ignoreLoading = require('./ignoreLoading');
