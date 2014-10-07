@@ -4,23 +4,29 @@ var Dispatcher = require('../');
 
 test('allStoresReady() method', function (t) {
   var dispatcher = new Dispatcher;
+  var loading = Dispatcher.loading;
+  console.log(loading);
   var store = dispatcher.store;
   t.plan(6);
 
   store('a', {
     init: function () {
       setTimeout(function () {
-        this.trigger('hello');
-        this.trigger(Dispatcher.ready);
-      }.bind(this));
+        this.trigger(loading);
+        setTimeout(function () {
+          this.trigger('hello');
+        }.bind(this), 100);
+      }.bind(this), 100);
     }
   });
 
   store('b', {
     init: function () {
       setTimeout(function () {
-        this.trigger('world');
-        this.trigger(Dispatcher.ready);
+        this.trigger(loading);
+        setTimeout(function () {
+          this.trigger('world');
+        }.bind(this), 100);
       }.bind(this), 100);
     }
   });
@@ -34,7 +40,8 @@ test('allStoresReady() method', function (t) {
   });
 
   setTimeout(function () {
-    t.equal(store('a').getDefaultData(), 'hello');
-    t.equal(store('b').getDefaultData(), 'world');
-  }, 200);
+    t.ok(store('a').getDefaultData().isLoading);
+    t.ok(store('b').getDefaultData().isLoading);
+  }, 150);
+
 });

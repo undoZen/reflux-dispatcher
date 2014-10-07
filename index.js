@@ -188,10 +188,9 @@ function wrapListenTo(context) {
   }
 }
 
-var errors = require('./errors');
-_.extend(Dispatcher, errors);
-_.extend(Dispatcher.prototype, errors);
+Dispatcher.prototype.ready = Dispatcher.ready = null;
+Dispatcher.prototype.loading = Dispatcher.loading = {isLoading: true};
 
 Dispatcher.prototype.allStoresReady = require('./allStoresReady');
-Dispatcher.voidInvalidData = Dispatcher.prototype.voidInvalidData = require('./voidInvalidData');
-Dispatcher.voidBuiltinData = Dispatcher.prototype.voidBuiltinData = require('./voidBuiltinData');
+
+//Dispatcher.prototype.ignoreLoading = Dispatcher.ignoreLoading = require('./ignoreLoading');

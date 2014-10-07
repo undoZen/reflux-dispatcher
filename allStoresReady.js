@@ -1,5 +1,6 @@
 'use strict';
 var uid = 0;
+var isLoading = require('./isLoading');
 module.exports = function (stores, callback) {
   var store = this.store;
   var ready = this.ready;
@@ -12,8 +13,8 @@ module.exports = function (stores, callback) {
       this.changed();
       stores.forEach(function (storeName, i) {
         self.listenTo(store(storeName), function (data) {
-          if (data === ready || data === loading) {
-            self.readyState[i] = data === ready;
+          if (data !== undefined) {
+            self.readyState[i] = !isLoading(data);
             self.changed();
           }
         });
