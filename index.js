@@ -70,12 +70,13 @@ function Dispatcher(options) {
 
   var stores = {};
   var readyStores = {};
-  var allStoresReadyTriggered = false;
+  var allStoresReady = true;
 
   this.stores = this.store = getOrSetStore;
   function getOrSetStore(storeName, definition) {
     var store = stores[storeName];
     if (store && (!definition || dispatcher.enableHotReload === false)) return store;
+    allStoresReady = false;
     definition = definition || {};
 
     var defaultDataFunc;
@@ -175,12 +176,12 @@ function Dispatcher(options) {
         readyStores[storeName] = true;
       }
       _trigger.apply(this, arguments);
-      if (!allStoresReadyTriggered) {
+      if (!allStoresReady) {
         for (var k in readyStores) {
           if (!readyStores.hasOwnProperty(k)) continue;
           if (!(readyStores[k])) return;
         }
-        allStoresReadyTriggered = true;
+        allStoresReady = true;
         var callback;
         while (callback = allStoresReadyCallbacks.shift()) {
           callback();
@@ -192,7 +193,7 @@ function Dispatcher(options) {
   }
   var allStoresReadyCallbacks = [];
   this.allStoresReady = function (callback) {
-    if (allStoresReadyTriggered) callback();
+    if (allStoresReady) callback();
     else allStoresReadyCallbacks.push(callback);
   }
 }

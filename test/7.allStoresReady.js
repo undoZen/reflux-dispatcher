@@ -2,6 +2,16 @@
 var test = require('tape');
 var Dispatcher = require('../');
 
+test('empty dispatcher', function (t) {
+  var dispatcher = new Dispatcher;
+  t.plan(1);
+
+  dispatcher.allStoresReady(function () {
+    t.ok(true); //should be triggered in empty dispatcher
+  });
+
+});
+
 test('allStoresReady() method', function (t) {
   var dispatcher = new Dispatcher;
   var loading = Dispatcher.loading;
